@@ -62,7 +62,7 @@ bool cmp(Node a, Node b)
 int main()
 {
 
-	cv::Mat src = cv::imread("F:\\git_repo\\OSTU\\winter.jpg");
+	cv::Mat src = cv::imread("F:\\git_repo\\OSTU\\randm.png");
 	// 如果数据为空
 	if (src.empty())
 	{
@@ -137,6 +137,7 @@ int main()
 	cv::namedWindow("dstwindow", CV_WINDOW_NORMAL);
 	cv::imshow("dst", dst);
 	cv::waitKey();
+	cv::imwrite("F:\\git_repo\\OSTU\\randm_dst.png", dst);
 	// std::cout << "Mythresh = " << thresh << std::endl;
 	//   t2 = (double)cv::getTickCount() - t2;
 	//double time2 = (t2 * 1000.) / ((double)cv::getTickFrequency());
