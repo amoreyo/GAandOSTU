@@ -37,15 +37,15 @@
 
 动漫图像因为色彩丰富，像素之间的跨度较大，不适合用该方法分割
 
-![image]https://github.com/amoreyo/OSTU/blob/master/img/randm.png
+![image](https://github.com/amoreyo/OSTU/blob/master/img/randm.png)
 
-![image]https://github.com/amoreyo/OSTU/blob/master/img/randm_dst.png
+![image](https://github.com/amoreyo/OSTU/blob/master/img/randm_dst.png)
 
 而真实的图像每一个像素都与之间的像素有所联系故较适合使用该方法分割
 
-![image]https://github.com/amoreyo/OSTU/blob/master/img/winter.jpg
+![image](https://github.com/amoreyo/OSTU/blob/master/img/winter.jpg)
 
-![image]https://github.com/amoreyo/OSTU/blob/master/img/winter_dst.jpg
+![image](https://github.com/amoreyo/OSTU/blob/master/img/winter_dst.jpg)
 
 
 
@@ -63,6 +63,5 @@
 2. 因为是通过直方图来划分种类，这个问题很容易联想到其他类似K-means的解决方法
 
 3. 既然是直方图，我们是否可以把总体的曲线模糊化，形成一条光滑的变化曲线，通过曲线表达式去直接得到每个波峰和波谷。 
-   
    
    
