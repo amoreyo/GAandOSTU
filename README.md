@@ -35,3 +35,34 @@
 
 ## 效果图
 
+动漫图像因为色彩丰富，像素之间的跨度较大，不适合用该方法分割
+
+![image]https://github.com/amoreyo/OSTU/blob/master/img/randm.png
+
+![image]https://github.com/amoreyo/OSTU/blob/master/img/randm_dst.png
+
+而真实的图像每一个像素都与之间的像素有所联系故较适合使用该方法分割
+
+![image]https://github.com/amoreyo/OSTU/blob/master/img/winter.jpg
+
+![image]https://github.com/amoreyo/OSTU/blob/master/img/winter_dst.jpg
+
+
+
+## 待优化思路
+
+1. 该算法中的超参数有：  
+	```
+   const int n = 4; 			// 要分割出的种类，此处为4种
+   const int epoch = 6;		// 运行的次数
+   const int rand_add = 3;		// 每次epoch中你要随机加入的种的个数
+   const int all_node = 100;	// 最多会出现的node的个数
+   ```
+   因为我筛选的机制是，加上随机添加的3个种，计算每个种的var，sort（降序）之后删除后二    分之三，var临近的合并（故会产生n-1个新的种），这样粗略计算，最后会有 3+3=6;  6/3=2;  2+1=3; 3+3=6 的循环。  总之，超参数的选择是另一个很有意思的东西。
+
+2. 因为是通过直方图来划分种类，这个问题很容易联想到其他类似K-means的解决方法
+
+3. 既然是直方图，我们是否可以把总体的曲线模糊化，形成一条光滑的变化曲线，通过曲线表达式去直接得到每个波峰和波谷。 
+   
+   
+   

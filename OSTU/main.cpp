@@ -138,19 +138,5 @@ int main()
 	cv::imshow("dst", dst);
 	cv::waitKey();
 	cv::imwrite("F:\\git_repo\\OSTU\\randm_dst.png", dst);
-	// std::cout << "Mythresh = " << thresh << std::endl;
-	//   t2 = (double)cv::getTickCount() - t2;
-	//double time2 = (t2 * 1000.) / ((double)cv::getTickFrequency());
-	//std::cout << "my_process=" << time2 << " ms. " << std::endl << std::endl;
-	//double  Otsu = 0;
-
-	// cv::namedWindow ÐÂ½¨´°¿Ú
-	//cv::namedWindow("srcwindow", CV_WINDOW_AUTOSIZE);
-	//cv::imshow("src", src);
-	// cv::waitKey();
-	//cv::namedWindow("dstwindow", CV_WINDOW_AUTOSIZE);
-	//cv::imshow("dst", dst);
-	//cv::waitKey();
-
 	return 0;
 }

@@ -9,7 +9,7 @@
 const int n = 4;
 const int epoch = 6;
 const int rand_add = 3;
-const int all_node = 50;
+const int all_node = 100;
 // return thresh
 int Otsu(cv::Mat& src, cv::Mat& dst, int thresh);
 
