@@ -1,77 +1,68 @@
-// 大津算法又称作最大类间方差法
-// m1 = 背景的像素均值， m2 = 主体的像素均值， mg = 图片的全局均值
+# include <iostream>
+# include <stdlib.h>
+# include <opencv2/core.hpp>
+# include <opencv2/highgui.hpp>
+# include <opencv2/imgproc.hpp>
+# include <opencv2\imgproc\types_c.h>
+# include <opencv2/highgui/highgui_c.h>
+# include <time.h>
+# include <algorithm>
+# include "OSTU.h"
 
-# include<iostream>
-# include<opencv2/core.hpp>
-# include<opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2\imgproc\types_c.h>
-#include <opencv2/highgui/highgui_c.h>
-
-// cv::Mat 是存储数据的类，类似numpy
-int Otsu(cv::Mat& src, cv::Mat& dst, int thresh)
+struct Node
 {
-	const int Grayscale = 256;
-	int graynum[Grayscale] = { 0 };				// 初始化256的数组为0
-	int r = src.rows;							// src的行数
-	int c = src.cols;							// src的列数
-	for (int i = 0; i < r; i++)
+	int rand_om[n + 1] = { 0 };
+	double loss;
+	bool operator >=(const Node& a)const
 	{
-		const uchar* ptr = src.ptr<uchar>(i);   // uchar是无符号字符，char的范围是-128~127，但是无符号的数值范围在0~255，在图像处理中表示像素值
-												// cv::Mat .ptr 能返回指定行的地址
-		for (int j = 0; j < c; j++)
-		{
-			graynum[ptr[j]]++;					// 统计src每个灰度值的直方图
-		}
+		return loss >= a.loss;
 	}
+	bool cut = true;
+};
 
-	double P[Grayscale] = { 0 };
-	double PK[Grayscale] = { 0 };
-	double MK[Grayscale] = { 0 };
-	double srcpixnum = r * c, sumtmpPK = 0, sumtmpMK = 0;
-	for (int i = 0; i < Grayscale; i++)
+Node node[100];
+
+void comb_node(int j, int start_node)
+{
+	std::memset(node[start_node + j].rand_om, 0, sizeof(node[start_node + j].rand_om));
+	node[start_node + j].rand_om[n] = 255;
+	node[start_node + j].cut = false;
+	for (int i = 1; i < n; i++)
 	{
-		P[i] = graynum[i] / srcpixnum;			// 统计每种灰度值出现的频率
-		PK[i] = sumtmpPK + P[i];				// 概率累计和,相当于分布函数积分
-		sumtmpPK = PK[i];
-		MK[i] = sumtmpMK + i * P[i];            // 统计灰度均值
-		sumtmpMK = MK[i];
+		node[start_node + j].rand_om[i] += node[j].rand_om[i];
+		node[start_node + j].rand_om[i] += node[j+1].rand_om[i];
+		node[start_node + j].rand_om[i] = int(node[start_node + j].rand_om[i] / 2);
 	}
-
-	// 计算类间方差
-	double Var = 0;
-	for (int k = 0; k < Grayscale; k++)
-	{
-		// 类间方差公式
-		double leijian_Var = (MK[Grayscale - 1] * PK[k] - MK[k]) * (MK[Grayscale - 1] * PK[k] - MK[k]) / (PK[k] * (1 - PK[k]));
-		if (leijian_Var > Var)
-		{
-			Var = leijian_Var;
-			thresh = k;
-		}
-	}
-
-	// 构建出已经完成分离的 cv::Mat
-	src.copyTo(dst); // 把src拷贝给det咯
-	for (int i = 0; i < r; i++)
-	{
-		uchar* ptr = dst.ptr<uchar>(i);
-		for (int j = 0; j < c; j++)
-		{
-			if (ptr[j] > thresh)
-				ptr[j] = 255;
-			else
-				ptr[j] = 0;
-		}
-
-	}
-
-	return thresh;
+	
 }
 
+void rand_loss(cv::Mat src, int j)
+{
+	srand((unsigned)time(NULL));
+	std::memset(node[j].rand_om, 0, sizeof(node[j].rand_om));
+	node[j].rand_om[n] = 255;
+	node[j].cut = false;
+	for (int i = 1; i < n; i++)
+	{
+		node[j].rand_om[i] = (rand() % 254) + 1;
+	}
+	std::sort(node[j].rand_om, node[j].rand_om + n);
+	node[j].loss = OtsuV1(src, node[j].rand_om);
+	return;
+}
+
+
+// 降序
+bool cmp(Node a, Node b)
+{
+	return a.loss > b.loss;
+}
+
+// class
 int main()
 {
-	cv::Mat src = cv::imread("F:\git_repo\OSTU\0000-0000L_1002.png");
+
+	cv::Mat src = cv::imread("F:\\git_repo\\OSTU\\winter.jpg");
 	// 如果数据为空
 	if (src.empty())
 	{
@@ -81,25 +72,84 @@ int main()
 	{
 		cv::cvtColor(src, src, cv::ColorConversionCodes::COLOR_RGB2GRAY);
 	}
-	
+
+
+	// +4 /3
+	// 初始化node
+	for (int j = 0; j < all_node; j++)
+	{
+		rand_loss(src, j);
+	}
+
+	int start_node = all_node;
+	for (int epo = 0; epo < epoch; epo++)
+	{
+		// add random
+		for (int j = start_node; j < start_node + rand_add; j++)
+		{
+			rand_loss(src, j);
+		}
+
+		start_node = start_node + rand_add;
+		// sort
+		std::sort(node, node + start_node, cmp);
+		// cut
+		int cut_number = 2 * int(start_node / 3 + 0.5);
+		for (int j = start_node - cut_number; j < start_node; j++)
+		{
+			node[j].cut = true;
+		}
+		start_node = start_node - cut_number;
+		// 杂交组合. var 近亲杂交, 计算loss
+		for (int j = 0; j < start_node - 1; j++)
+		{
+			comb_node(j, start_node);
+			node[start_node + j].loss = OtsuV1(src, node[start_node + j].rand_om);
+		}
+		start_node = start_node * 2 - 1;
+	}
+	// epoch 结束之后
+
 	cv::Mat dst;
-	int thresh = 0;
-	double t2 = (double)cv::getTickCount();
-	thresh = Otsu(src, dst, thresh);
-	std::cout << "Mythresh = " << thresh << std::endl;
-	t2 = (double)cv::getTickCount() - t2;
-	double time2 = (t2 * 1000.) / ((double)cv::getTickFrequency());
-	std::cout << "my_process=" << time2 << " ms. " << std::endl << std::endl;
-	double  Otsu = 0;
+	int r = src.rows;							
+	int c = src.cols;							
+	// 构建出已经完成分离的 cv::Mat
+	src.copyTo(dst); // 把src拷贝给det咯
+	for (int i = 0; i < r; i++)
+	{
+		uchar* ptr = dst.ptr<uchar>(i);
+		for (int j = 0; j < c; j++)
+		{
+			if (ptr[j] < node[0].rand_om[1])
+				ptr[j] = 255;
+			else if (ptr[j] >= node[0].rand_om[1] && ptr[j] < node[0].rand_om[2])
+				ptr[j] = 192;
+			else if (ptr[j] >= node[0].rand_om[2] && ptr[j] < node[0].rand_om[3])
+				ptr[j] = 128;
+			else if (ptr[j] >= node[0].rand_om[3] && ptr[j] < node[0].rand_om[4])
+				ptr[j] = 64;
+			else if (ptr[j] >= node[0].rand_om[4] && ptr[j] <= 255)
+				ptr[j] = 0;
+		}
+	}
+	cv::namedWindow("srcwindow", CV_WINDOW_NORMAL);
+	cv::imshow("src", src);
+	cv::namedWindow("dstwindow", CV_WINDOW_NORMAL);
+	cv::imshow("dst", dst);
+	cv::waitKey();
+	// std::cout << "Mythresh = " << thresh << std::endl;
+	//   t2 = (double)cv::getTickCount() - t2;
+	//double time2 = (t2 * 1000.) / ((double)cv::getTickFrequency());
+	//std::cout << "my_process=" << time2 << " ms. " << std::endl << std::endl;
+	//double  Otsu = 0;
 
 	// cv::namedWindow 新建窗口
-	cv::namedWindow("src", CV_WINDOW_NORMAL);
-	cv::imshow("src", src);
-	cv::namedWindow("dst", CV_WINDOW_NORMAL);
-	cv::imshow("dst", dst);
-
-	// 用户按任意键结束等待
-	cv::waitKey(0);
+	//cv::namedWindow("srcwindow", CV_WINDOW_AUTOSIZE);
+	//cv::imshow("src", src);
+	// cv::waitKey();
+	//cv::namedWindow("dstwindow", CV_WINDOW_AUTOSIZE);
+	//cv::imshow("dst", dst);
+	//cv::waitKey();
 
 	return 0;
 }
